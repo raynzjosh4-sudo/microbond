@@ -127,14 +127,25 @@ fun SettingDetailRouter(
         "Fee exemptions" -> FeeExemptionsScreen(groupName = groupName, onBack = onBack)
         "Grace period" -> GracePeriodScreen(groupName = groupName, onBack = onBack)
         "Grace period window" -> GracePeriodWindowScreen(groupName = groupName, onBack = onBack)
-        "Group health rating" -> GroupHealthRatingScreen(groupName = groupName, onBack = onBack)
+        "Group health rating" -> GroupHealthRatingScreen(
+            groupName = groupName,
+            onBack = onBack,
+            groupId = groupId,
+            isAdmin = isAdmin
+        )
         "Interest rates" -> InterestRatesScreen(groupName = groupName, onBack = onBack)
         "Internal credit score" -> InternalCreditScoreScreen(groupName = groupName, onBack = onBack)
         "Issue a challenge / match" -> IssueAChallengeMatchScreen(groupName = groupName, onBack = onBack)
         "Late-fee penalties" -> LatefeePenaltiesScreen(groupName = groupName, onBack = onBack)
         "Late fee" -> LateFeeScreen(groupName = groupName, onBack = onBack)
         "Liquidity buffer coverage" -> LiquidityBufferCoverageScreen(groupName = groupName, onBack = onBack)
-        "Loan guarantor rules" -> LoanGuarantorRulesScreen(groupName = groupName, onBack = onBack)
+        "Loan guarantor rules", "Guarantor rules", "Guarantor required" -> LoanGuarantorRulesScreen(
+            groupName = groupName,
+            onBack = onBack,
+            groupId = groupId,
+            isAdmin = isAdmin
+        )
+
         "Manage payout order" -> ManagePayoutOrderScreen(groupName = groupName, onBack = onBack)
         "Maximum borrowing limit" -> MaximumBorrowingLimitScreen(groupName = groupName, onBack = onBack)
         "Maximum payout limit" -> MaximumPayoutLimitScreen(groupName = groupName, onBack = onBack)
@@ -195,7 +206,15 @@ fun SettingDetailRouter(
             isAdmin = isAdmin
         )
         "Weekly report day" -> WeeklyReportDayScreen(groupName = groupName, onBack = onBack)
+        "Vouch for a member", "Vouch for a borrower" -> VouchForMemberScreen(
+            groupName = groupName,
+            onBack = onBack,
+            groupId = groupId,
+            isAdmin = isAdmin,
+            isBorrower = (settingTitle == "Vouch for a borrower")
+        )
         "Group charter", "Savings charter", "Bill-sharing agreement", "Welfare charter", 
+
         "Event charter", "Investment charter", "Campaign terms", "Wallet agreement", 
         "Association constitution" -> GroupCharterScreen(title = settingTitle, groupName = groupName, onBack = onBack)
         else -> {

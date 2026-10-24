@@ -20,8 +20,10 @@ import androidx.compose.ui.unit.sp
 import com.microbond.app.core.data_classes_and_enums.SavingsGroupType
 import com.microbond.app.core.network.NetworkClient
 import com.microbond.app.core.network.api.goupapis.groupallsettingsapiservice.GovernanceSettingsData
+import com.microbond.app.core.network.api.goupapis.groupallsettingsapiservice.TrustMembersData
 import com.microbond.app.core.network.api.goupapis.groupallsettingsapiservice.UpdateGoalControlsRequest
 import com.microbond.app.core.network.api.goupapis.groupallsettingsapiservice.UpdateGovernanceRequest
+import com.microbond.app.core.network.api.goupapis.groupallsettingsapiservice.UpdateTrustMembersRequest
 import com.microbond.app.core.ui.theme.MicrobondActiveGreen
 import com.microbond.app.core.ui.theme.MicrobondDarkBackground
 import com.microbond.app.core.ui.theme.MicrobondDestructiveRed
@@ -61,15 +63,17 @@ fun GroupSubSettingsScreen(
     val rows = accessState.visibleSettings(groupType, page, viewerRole)
     val isGoalControls = groupType == SavingsGroupType.GOAL_SAVINGS && page == GroupSettingsPage.TYPE_RULES
     val isGovernance = page == GroupSettingsPage.GOVERNANCE
+    val isTrust = page == GroupSettingsPage.TRUST
     val scope = rememberCoroutineScope()
 
     var governanceData by remember { mutableStateOf<GovernanceSettingsData?>(null) }
-    var isLoading by remember { mutableStateOf((isGoalControls || isGovernance) && groupId.isNotBlank()) }
+    var trustData by remember { mutableStateOf<TrustMembersData?>(null) }
+    var isLoading by remember { mutableStateOf((isGoalControls || isGovernance || isTrust) && groupId.isNotBlank()) }
     var isSaving by remember { mutableStateOf(false) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(groupId, isGoalControls, isGovernance) {
-        if ((!isGoalControls && !isGovernance) || groupId.isBlank()) {
+    LaunchedEffect(groupId, isGoalControls, isGovernance, isTrust) {
+        if ((!isGoalControls && !isGovernance && !isTrust) || groupId.isBlank()) {
             isLoading = false
             return@LaunchedEffect
         }
@@ -98,6 +102,18 @@ fun GroupSubSettingsScreen(
                     rows.forEach { row ->
                         if (row.setting.title == "Require multi-signature") {
                             accessState.setToggle(row.setting, data.requireMultiSignature)
+                        }
+                    }
+                }
+            } else if (isTrust) {
+                val resp = NetworkClient.apiService.getTrustMembersSettings(groupId)
+                if (resp.isSuccessful && resp.body()?.data != null) {
+                    val data = resp.body()!!.data!!
+                    trustData = data
+                    rows.forEach { row ->
+                        if (row.setting.title == "Guarantor required") {
+                            accessState.setToggle(row.setting, data.requireGuarantors)
+                            accessState.setSharedWithMembers(row.setting, data.visGuarantorRequired)
                         }
                     }
                 }
@@ -156,9 +172,31 @@ fun GroupSubSettingsScreen(
                         isSaving = false
                     }
                 }
+            } else if (isTrust && setting.title == "Guarantor required") {
+                scope.launch {
+                    isSaving = true
+                    try {
+                        val req = UpdateTrustMembersRequest(requireGuarantors = newEnabled)
+                        val resp = NetworkClient.apiService.updateTrustMembersSettings(groupId, req)
+                        if (!resp.isSuccessful) {
+                            accessState.setToggle(setting, prev)
+                        } else {
+                            val updatedData = resp.body()?.data
+                            if (updatedData != null) {
+                                trustData = updatedData
+                                accessState.setSharedWithMembers(setting, updatedData.visGuarantorRequired)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        accessState.setToggle(setting, prev)
+                    } finally {
+                        isSaving = false
+                    }
+                }
             }
         }
     }
+
 
     BackHandler(onBack = onBack)
 
@@ -230,10 +268,28 @@ fun GroupSubSettingsScreen(
                         "My approval authorization" -> governanceData?.myApprovalAuthorization ?: row.setting.value
                         else -> row.setting.value
                     }
+                } else if (isTrust && trustData != null) {
+                    when (row.setting.title) {
+                        "Group health rating" -> trustData?.groupHealthRating ?: row.setting.value
+                        else -> row.setting.value
+                    }
                 } else {
                     row.setting.value
                 }
-                val setting = if (dynamicValue != row.setting.value) row.setting.copy(value = dynamicValue) else row.setting
+
+                val dynamicDescription = if (isTrust && trustData?.vouchingSummary?.vouchActionSubtitle != null &&
+                    (row.setting.title == "Vouch for a member" || row.setting.title == "Vouch for a borrower")
+                ) {
+                    trustData?.vouchingSummary?.vouchActionSubtitle ?: row.setting.description
+                } else {
+                    row.setting.description
+                }
+
+                var setting = if (dynamicValue != row.setting.value) row.setting.copy(value = dynamicValue) else row.setting
+                if (dynamicDescription != setting.description) {
+                    setting = setting.copy(description = dynamicDescription)
+                }
+
                 val hint = accessState.audienceHint(setting)
                 if (setting.toggle) {
                     GroupSettingToggleRow(
@@ -255,7 +311,7 @@ fun GroupSubSettingsScreen(
 
             WaSettingsDivider()
 
-            if (!isGoalControls && !isGovernance) {
+            if (!isGoalControls && !isGovernance && !isTrust) {
                 Text(
                     text = "Settings shown here are a local prototype and are not synced to a server.",
                     color = MicrobondInactiveGray,
@@ -265,5 +321,6 @@ fun GroupSubSettingsScreen(
                 )
             }
         }
+
     }
 }

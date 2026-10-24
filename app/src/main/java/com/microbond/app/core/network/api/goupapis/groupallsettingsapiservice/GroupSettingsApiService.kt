@@ -18,4 +18,6 @@ interface GroupSettingsApiService :
     GoalControlsApiService,
     GroupGovernanceApiService,
     GroupAuditApiService,
-    GroupFinancialApiService
+    GroupFinancialApiService,
+    GroupTrustApiService
+
