@@ -116,7 +116,12 @@ fun SettingDetailRouter(
         "Early repayment discount" -> EarlyRepaymentDiscountScreen(groupName = groupName, onBack = onBack)
         "Emergency contact" -> EmergencyContactScreen(groupName = groupName, onBack = onBack)
         "Encryption" -> EncryptionScreen(groupName = groupName, onBack = onBack)
-        "Escrow lock" -> EscrowLockScreen(groupName = groupName, onBack = onBack)
+        "Escrow lock" -> EscrowLockScreen(
+            groupName = groupName,
+            onBack = onBack,
+            groupId = groupId,
+            isAdmin = isAdmin
+        )
         "Exit group" -> ExitGroupScreen(groupName = groupName, groupId = groupId, onBack = onBack)
         "Export my records" -> ExportMyRecordsScreen(groupName = groupName, groupId = groupId, onBack = onBack)
         "Fee exemptions" -> FeeExemptionsScreen(groupName = groupName, onBack = onBack)

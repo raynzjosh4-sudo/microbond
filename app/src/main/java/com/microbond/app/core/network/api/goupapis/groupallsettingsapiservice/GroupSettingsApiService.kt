@@ -287,6 +287,61 @@ data class UpdatePendingDisbursalsRequest(
     @SerializedName("vis_pending_payout_queue") val visPendingPayoutQueue: Boolean? = null
 )
 
+// ── Escrow Lock Settings Models ───────────────────────────────────────────
+
+data class EscrowLockData(
+    @SerializedName("group_id") val groupId: String = "",
+    @SerializedName("group_name") val groupName: String = "",
+    @SerializedName("enable_escrow") val enableEscrow: Boolean = true,
+    @SerializedName("hold_funds_in_escrow") val holdFundsInEscrow: Boolean = true,
+    @SerializedName("escrow_release_condition") val escrowReleaseCondition: String = "Upon unanimous approval",
+    @SerializedName("release_condition") val releaseCondition: String = "Upon unanimous approval",
+    @SerializedName("available_release_conditions") val availableReleaseConditions: List<String> = listOf(
+        "Upon unanimous approval",
+        "Majority Vote",
+        "Timelock or Consensus",
+        "Milestone and Consensus"
+    )
+)
+
+data class EscrowLockResponse(
+    val status: String = "success",
+    val message: String? = null,
+    val data: EscrowLockData? = null
+)
+
+data class UpdateEscrowLockRequest(
+    @SerializedName("enable_escrow") val enableEscrow: Boolean? = null,
+    @SerializedName("escrow_release_condition") val escrowReleaseCondition: String? = null
+)
+
+// ── Timelock Disbursals Settings Models ─────────────────────────────────────
+
+data class TimelockDisbursalsData(
+    @SerializedName("group_id") val groupId: String = "",
+    @SerializedName("group_name") val groupName: String = "",
+    @SerializedName("enable_payout_delay") val enablePayoutDelay: Boolean = true,
+    @SerializedName("enable_timelock") val enableTimelock: Boolean = true,
+    @SerializedName("cooling_duration_hours") val coolingDurationHours: Int = 24,
+    @SerializedName("timelock_duration_hours") val timelockDurationHours: Int = 24,
+    @SerializedName("cooling_duration") val coolingDuration: String = "24 Hours",
+    @SerializedName("cooling_duration_display") val coolingDurationDisplay: String = "24 Hours",
+    @SerializedName("allowed_options") val allowedOptions: List<Int> = listOf(6, 12, 24, 48, 72),
+    @SerializedName("description") val description: String? = null
+)
+
+data class TimelockDisbursalsResponse(
+    val status: String = "success",
+    val message: String? = null,
+    val data: TimelockDisbursalsData? = null
+)
+
+data class UpdateTimelockDisbursalsRequest(
+    @SerializedName("enable_payout_delay") val enablePayoutDelay: Boolean? = null,
+    @SerializedName("cooling_duration_hours") val coolingDurationHours: Int? = null,
+    @SerializedName("cooling_duration") val coolingDuration: String? = null
+)
+
 // ── Group Settings API Service Interface ───────────────────────────────────
 
 interface GroupSettingsApiService {
@@ -433,4 +488,28 @@ interface GroupSettingsApiService {
         @Path("group_id") groupId: String,
         @Body payload: UpdateMyAuthorizationRequest
     ): Response<MyAuthorizationResponse>
+
+    // ── Dedicated Escrow Lock Settings ────────────────────────────────────────
+    @GET("api/v1/groups/{group_id}/settings/escrow")
+    suspend fun getEscrowLockSettings(
+        @Path("group_id") groupId: String
+    ): Response<EscrowLockResponse>
+
+    @PATCH("api/v1/groups/{group_id}/settings/escrow")
+    suspend fun updateEscrowLockSettings(
+        @Path("group_id") groupId: String,
+        @Body payload: UpdateEscrowLockRequest
+    ): Response<EscrowLockResponse>
+
+    // ── Dedicated Timelock Disbursals Settings ─────────────────────────────────
+    @GET("api/v1/groups/{group_id}/settings/timelock")
+    suspend fun getTimelockDisbursals(
+        @Path("group_id") groupId: String
+    ): Response<TimelockDisbursalsResponse>
+
+    @PATCH("api/v1/groups/{group_id}/settings/timelock")
+    suspend fun updateTimelockDisbursals(
+        @Path("group_id") groupId: String,
+        @Body payload: UpdateTimelockDisbursalsRequest
+    ): Response<TimelockDisbursalsResponse>
 }
