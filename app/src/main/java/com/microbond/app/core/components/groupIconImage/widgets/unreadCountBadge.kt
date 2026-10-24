@@ -24,7 +24,7 @@ fun UnreadCountBadge(
     backgroundColor: Color = MicrobondActiveGreen,
     textColor: Color = MicrobondDarkBackground
 ) {
-    if (count < 0) return
+    if (count <= 0) return
 
     val displayCount = if (count > 99) "99+" else count.toString()
 

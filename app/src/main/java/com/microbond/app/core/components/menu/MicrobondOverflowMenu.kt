@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import com.microbond.app.core.ui.theme.MicrobondDarkBackground
+import com.microbond.app.core.data_classes_and_enums.MicrobondMenuAction
 import com.microbond.app.core.ui.theme.MicrobondInactiveGray
 import com.microbond.app.core.ui.theme.MicrobondOverlayWidgetDark
 import com.microbond.app.core.ui.theme.MicrobondTextPrimary
@@ -55,19 +55,15 @@ import kotlin.time.Duration.Companion.milliseconds
 
 
 
-data class MicrobondMenuAction(
-    val title: String,
-    val onClick: () -> Unit,
-    val icon: ImageVector? = null,
-    val enabled: Boolean = true
-)
+
 
 @Composable
 fun MicrobondOverflowMenu(
     actions: List<MicrobondMenuAction>,
     modifier: Modifier = Modifier,
     onClickWhenEmpty: () -> Unit = {},
-    contentDescription: String = "More options"
+    contentDescription: String = "More options",
+    triggerIcon: ImageVector = Icons.Outlined.MoreVert
 ) {
     var expanded by remember { mutableStateOf(false) }
     var popupVisible by remember { mutableStateOf(false) }
@@ -97,7 +93,7 @@ fun MicrobondOverflowMenu(
             }
         ) {
             Icon(
-                imageVector = Icons.Outlined.MoreVert,
+                imageVector = triggerIcon,
                 contentDescription = contentDescription,
                 tint = Color.White
             )
@@ -118,8 +114,8 @@ fun MicrobondOverflowMenu(
                         expandFrom = Alignment.Top,
                         animationSpec = tween(240, easing = FastOutSlowInEasing)
                     ) + slideInVertically(
-                        initialOffsetY = { -it / 8 },
-                        animationSpec = tween(240, easing = FastOutSlowInEasing)
+                        initialOffsetY = { -it / 6 },
+                        animationSpec = tween(260, easing = FastOutSlowInEasing)
                     ) + fadeIn(animationSpec = tween(180)),
                     exit = shrinkVertically(
                         shrinkTowards = Alignment.Top,
@@ -132,7 +128,7 @@ fun MicrobondOverflowMenu(
                     Surface(
                         modifier = Modifier
                             .width(IntrinsicSize.Max)
-                            .widthIn(min = 144.dp, max = 240.dp),
+                            .widthIn(min = 160.dp, max = 250.dp),
                         shape = RoundedCornerShape(10.dp),
                         color = MicrobondOverlayWidgetDark,
                         contentColor = MicrobondTextPrimary,

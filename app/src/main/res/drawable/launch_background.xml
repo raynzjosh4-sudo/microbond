@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/microbond_dark_background" />
+    <item
+        android:width="109dp"
+        android:height="93dp"
+        android:gravity="center"
+        android:drawable="@drawable/microtopicon" />
+</layer-list>

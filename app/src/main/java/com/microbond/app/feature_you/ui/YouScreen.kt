@@ -19,11 +19,17 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import com.microbond.app.authentication_features.data.AuthSessionManager
 import com.microbond.app.core.components.MicrobondTopAppBar
+import com.microbond.app.core.components.you.MicrobondSettingsListTile
 import com.microbond.app.core.components.you.ProfileHeaderTile
-import com.microbond.app.core.components.you.SettingsListTile
+import com.microbond.app.core.network.NetworkClient
 import com.microbond.app.core.ui.theme.MicrobondDarkBackground
 import com.microbond.app.core.ui.theme.MicrobondDividerDark
 
@@ -33,6 +39,51 @@ fun YouScreen(
     onNavigateToQr: () -> Unit = {},
     onNavigateToSetting: (String) -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val displayName by AuthSessionManager.displayName.collectAsState()
+    val avatarUrl by AuthSessionManager.avatarUrl.collectAsState()
+    val aboutStatus by AuthSessionManager.aboutStatus.collectAsState()
+    val phoneNumber by AuthSessionManager.phoneNumber.collectAsState()
+
+    LaunchedEffect(Unit) {
+        AuthSessionManager.load(context)
+        try {
+            val response = NetworkClient.apiService.getCurrentUserProfile()
+            if (response.isSuccessful && response.body()?.data != null) {
+                val profile = response.body()!!.data!!
+                AuthSessionManager.updateProfileDetails(
+                    context = context,
+                    name = profile.fullName,
+                    avatarUrl = profile.profilePictureUrl,
+                    about = profile.aboutStatus,
+                    phone = profile.phoneNumber
+                )
+            }
+        } catch (_: Exception) {
+            // Keep local cached session data if offline
+        }
+    }
+
+    val resolvedName = remember(displayName, phoneNumber) {
+        if (!displayName.isNullOrBlank()) displayName!!
+        else if (!phoneNumber.isNullOrBlank()) phoneNumber!!
+        else "Justin Mason"
+    }
+
+    val resolvedAbout = remember(aboutStatus) {
+        if (!aboutStatus.isNullOrBlank()) aboutStatus!!
+        else "Saving for the future - Available"
+    }
+
+    val initials = remember(resolvedName) {
+        val parts = resolvedName.trim().split("\\s+".toRegex()).filter { it.isNotBlank() }
+        when {
+            parts.size >= 2 -> "${parts[0].first().uppercaseChar()}${parts[1].first().uppercaseChar()}"
+            parts.size == 1 -> parts[0].take(2).uppercase()
+            else -> "MB"
+        }
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
@@ -51,9 +102,10 @@ fun YouScreen(
         ) {
             item {
                 ProfileHeaderTile(
-                    name = "Justin Mason",
-                    about = "Saving for the future - Available",
-                    initials = "JM",
+                    name = resolvedName,
+                    about = resolvedAbout,
+                    initials = initials,
+                    avatarUrl = avatarUrl,
                     onProfileClick = onNavigateToProfile,
                     onQrCodeClick = onNavigateToQr
                 )
@@ -65,7 +117,7 @@ fun YouScreen(
             }
 
             item {
-                SettingsListTile(
+                MicrobondSettingsListTile(
                     title = "Account",
                     subtitle = "Security notifications, change PIN",
                     icon = Icons.Default.Key,
@@ -73,7 +125,7 @@ fun YouScreen(
                 )
             }
             item {
-                SettingsListTile(
+                MicrobondSettingsListTile(
                     title = "Privacy",
                     subtitle = "Blocked contacts, profile visibility",
                     icon = Icons.Default.Lock,
@@ -81,7 +133,7 @@ fun YouScreen(
                 )
             }
             item {
-                SettingsListTile(
+                MicrobondSettingsListTile(
                     title = "Linked Accounts",
                     subtitle = "Mobile money, bank accounts and limits",
                     icon = Icons.Default.AccountBalance,
@@ -89,7 +141,7 @@ fun YouScreen(
                 )
             }
             item {
-                SettingsListTile(
+                MicrobondSettingsListTile(
                     title = "Threads",
                     subtitle = "Theme, wallpapers and thread history",
                     icon = Icons.Default.Chat,
@@ -97,7 +149,7 @@ fun YouScreen(
                 )
             }
             item {
-                SettingsListTile(
+                MicrobondSettingsListTile(
                     title = "Notifications",
                     subtitle = "Message, group and transaction alerts",
                     icon = Icons.Default.Notifications,
@@ -105,7 +157,7 @@ fun YouScreen(
                 )
             }
             item {
-                SettingsListTile(
+                MicrobondSettingsListTile(
                     title = "Storage and data",
                     subtitle = "Network usage and downloads",
                     icon = Icons.Default.DataUsage,
@@ -113,7 +165,7 @@ fun YouScreen(
                 )
             }
             item {
-                SettingsListTile(
+                MicrobondSettingsListTile(
                     title = "Help",
                     subtitle = "Help center and contact support",
                     icon = Icons.Default.HelpOutline,
@@ -121,7 +173,7 @@ fun YouScreen(
                 )
             }
             item {
-                SettingsListTile(
+                MicrobondSettingsListTile(
                     title = "Invite a friend",
                     subtitle = "",
                     icon = Icons.Default.PeopleAlt,

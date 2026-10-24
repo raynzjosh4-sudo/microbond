@@ -2,7 +2,7 @@
 <resources>
 
     <style name="Theme.Microbond" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@color/microbond_dark_background</item>
+        <item name="android:windowBackground">@drawable/launch_background</item>
         <item name="android:colorAccent">@color/microbond_active_green</item>
         <item name="android:statusBarColor">@color/microbond_dark_background</item>
         <item name="android:navigationBarColor">@color/microbond_dark_background</item>

@@ -13,25 +13,20 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import com.microbond.app.core.data_classes_and_enums.MicrobondMenuAction
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -53,7 +48,6 @@ import com.microbond.app.core.components.updates.GroupIconAction
 import com.microbond.app.core.components.updates.GroupsHeader
 import com.microbond.app.core.components.updates.UserStatusCard
 import com.microbond.app.core.data_classes_and_enums.ChartPreview
-import com.microbond.app.core.data_classes_and_enums.GroupSavingsType
 import com.microbond.app.core.dummydata.sampleSavingsGroups
 import com.microbond.app.core.dummydata.sampleStatuses
 import com.microbond.app.core.ui.theme.MicrobondActiveGreen
@@ -67,7 +61,7 @@ data class StatusItem(
 )
 
 @Composable
-fun UpdateScreenV2(
+fun UpdateGroupScreen(
     onNavigateToCamera: () -> Unit = {},
     onNavigateToTextUpdate: () -> Unit = {}
 ) {
@@ -106,8 +100,8 @@ fun UpdateScreenV2(
                 onSearchIconClick = { },
                 onMoreClick = { },
                 menuActions = listOf(
-                    com.microbond.app.core.components.menu.MicrobondMenuAction("Refresh", { }),
-                    com.microbond.app.core.components.menu.MicrobondMenuAction("Settings", { })
+                    MicrobondMenuAction("Refresh", { }),
+                    MicrobondMenuAction("Settings", { })
                 )
             )
         },

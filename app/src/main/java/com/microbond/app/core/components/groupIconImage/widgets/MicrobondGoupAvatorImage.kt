@@ -34,20 +34,23 @@ import com.microbond.app.core.ui.theme.MicrobondDividerDark
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MicrobondGroupAvatar(
-    statuses: List<MemberSaveStatus>,
+    statuses: List<MemberSaveStatus> = emptyList(),
     modifier: Modifier = Modifier,
     showStatusRing: Boolean = true,
     @DrawableRes groupImageRes: Int? = null,
+    imageUri: String? = null,
     avatarSize: Dp = 56.dp,
     ringThickness: Dp = 3.5.dp,
     ringGapAngle: Float = 6f,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
 ) {
-    if (!showStatusRing) {
+    val hasActiveRing = showStatusRing && statuses.isNotEmpty() && statuses.any { it != MemberSaveStatus.PENDING }
+    if (!hasActiveRing) {
         MicrobondGroupImageAvatar(
             modifier = modifier,
             groupImageRes = groupImageRes,
+            imageUri = imageUri,
             avatarSize = avatarSize,
             onClick = onClick,
             onLongClick = onLongClick
@@ -99,6 +102,10 @@ fun MicrobondGroupAvatar(
             }
         }
 
+        val asyncPainter = if (!imageUri.isNullOrBlank()) {
+            com.microbond.app.core.components.avatar.rememberAsyncImagePainter(imageUri)
+        } else null
+
         Box(
             modifier = Modifier
                 .padding(ringThickness + 2.dp)
@@ -110,6 +117,13 @@ fun MicrobondGroupAvatar(
             if (groupImageRes != null) {
                 Image(
                     painter = painterResource(id = groupImageRes),
+                    contentDescription = "Group picture",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else if (asyncPainter != null) {
+                Image(
+                    painter = asyncPainter,
                     contentDescription = "Group picture",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()

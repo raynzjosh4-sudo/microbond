@@ -1,0 +1,65 @@
+// Example app/build.gradle.kts snippet for Microbond Android
+// Place inside your android { ... } block:
+
+android {
+    namespace = "com.microbond.app"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.microbond.app"
+        minSdk = 26
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
+    }
+
+    // 1. Enable automatic BuildConfig class generation
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+
+    // 2. Define Build Variants (Debug = Render Staging, Release = Cloud Run Production)
+    buildTypes {
+        debug {
+            // Render Staging URL: Allows 24/7 testing on physical device with PC off
+            buildConfigField("String", "BASE_URL", "\"https://microbond-api.onrender.com/\"")
+            buildConfigField("String", "WS_BASE_URL", "\"wss://microbond-api.onrender.com/ws/\"")
+            buildConfigField("Boolean", "ENABLE_HTTP_LOGS", "true")
+
+            // Allows installing both Debug (Staging) and Release (Production) side-by-side on one phone
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            isDebuggable = true
+        }
+
+        release {
+            // Google Cloud Run Production URL with Custom Domain
+            buildConfigField("String", "BASE_URL", "\"https://api.getmicrobond.com/\"")
+            buildConfigField("String", "WS_BASE_URL", "\"wss://api.getmicrobond.com/ws/\"")
+            buildConfigField("Boolean", "ENABLE_HTTP_LOGS", "false")
+
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            isDebuggable = false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}

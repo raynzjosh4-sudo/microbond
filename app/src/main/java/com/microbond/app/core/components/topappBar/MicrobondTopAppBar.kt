@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -31,12 +32,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.microbond.app.core.components.menu.MicrobondMenuAction
 import com.microbond.app.core.components.menu.MicrobondOverflowMenu
-import com.microbond.app.core.ui.theme.MicrobondActiveGreen
-import com.microbond.app.core.ui.theme.MicrobondChipNonSelectedColor
+import com.microbond.app.core.data_classes_and_enums.MicrobondMenuAction
 import com.microbond.app.core.ui.theme.MicrobondDarkBackground
-import com.microbond.app.core.ui.theme.MicrobondInactiveGray
 import com.microbond.app.core.ui.theme.MicrobondTextPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,23 +48,27 @@ fun MicrobondTopAppBar(
     showMoreIcon: Boolean = true,
     showSearchBarWigdet: Boolean = false,
     showFilterChip: Boolean = false,
+    searchQuery: String = "",
+    onSearchQueryChange: (String) -> Unit = {},
     onBackClick: () -> Unit = {},
     onCameraClick: () -> Unit = {},
     onSearchIconClick: () -> Unit = {},
     onSearchBarClick: () -> Unit = {},
     onMoreClick: () -> Unit = {},
     menuActions: List<MicrobondMenuAction> = emptyList(),
+    appIconRes: Int? = null,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(MicrobondDarkBackground)
-            .padding(top = 12.dp, bottom = 8.dp)
+            .statusBarsPadding()
+            .padding(top = 4.dp, bottom = 8.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp),
+                .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -77,22 +79,39 @@ fun MicrobondTopAppBar(
                 if (showBackButton) {
                     IconButton(
                         onClick = onBackClick,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = "Back",
-                            tint = MicrobondTextPrimary
+                            tint = MicrobondTextPrimary,
+                            modifier = Modifier.size(24.dp)
                         )
+                    }
+                    if (title.isNotBlank() || appIconRes != null) {
+                        Spacer(modifier = Modifier.width(6.dp))
                     }
                 }
 
-                Text(
-                    text = title,
-                    fontSize = if (showBackButton) 20.sp else 25.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MicrobondTextPrimary
-                )
+                if (appIconRes != null) {
+                    androidx.compose.foundation.Image(
+                        painter = androidx.compose.ui.res.painterResource(id = appIconRes),
+                        contentDescription = "App Icon",
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(androidx.compose.foundation.shape.CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+
+                if (title.isNotBlank()) {
+                    Text(
+                        text = title,
+                        fontSize = if (showBackButton) 20.sp else 24.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MicrobondTextPrimary
+                    )
+                }
             }
 
             Row(
@@ -137,8 +156,8 @@ fun MicrobondTopAppBar(
 
         if (showSearchBarWigdet) {
             MicrobondSearchField(
-                value = "",
-                onValueChange = {}
+                value = searchQuery,
+                onValueChange = onSearchQueryChange
             )
         }
     }

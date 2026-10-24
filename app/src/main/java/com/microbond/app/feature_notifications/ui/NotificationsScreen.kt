@@ -32,7 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.microbond.app.core.components.MicrobondTopAppBar
-import com.microbond.app.core.components.menu.MicrobondMenuAction
+import com.microbond.app.core.data_classes_and_enums.MicrobondMenuAction
 import com.microbond.app.core.ui.theme.MicrobondDarkBackground
 import com.microbond.app.core.ui.theme.MicrobondInactiveGray
 import com.microbond.app.core.ui.theme.MicrobondTextPrimary

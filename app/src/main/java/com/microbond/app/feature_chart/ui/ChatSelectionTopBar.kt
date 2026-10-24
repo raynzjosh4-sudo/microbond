@@ -23,8 +23,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.microbond.app.core.components.menu.MicrobondMenuAction
 import com.microbond.app.core.components.menu.MicrobondOverflowMenu
+import com.microbond.app.core.data_classes_and_enums.MicrobondMenuAction
 import com.microbond.app.core.ui.theme.MicrobondDarkBackground
 
 @Composable

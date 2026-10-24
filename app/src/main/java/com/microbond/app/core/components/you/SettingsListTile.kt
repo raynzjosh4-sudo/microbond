@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,12 +22,14 @@ import com.microbond.app.core.ui.theme.MicrobondInactiveGray
 import com.microbond.app.core.ui.theme.MicrobondTextPrimary
 
 @Composable
-fun SettingsListTile(
+fun MicrobondSettingsListTile(
     title: String,
     subtitle: String,
     icon: ImageVector,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    titleColor: Color = MicrobondTextPrimary,
+    iconTint: Color = MicrobondInactiveGray
 ) {
     Row(
         modifier = modifier
@@ -38,16 +41,14 @@ fun SettingsListTile(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MicrobondInactiveGray,
+            tint = iconTint,
             modifier = Modifier.size(24.dp)
         )
-
-        Spacer(modifier = Modifier.width(24.dp))
-
+        Spacer(modifier = Modifier.width(18.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                color = MicrobondTextPrimary,
+                color = titleColor,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Normal
             )

@@ -71,7 +71,7 @@ fun MicroBondBottomBar(
 ) {
     val tabs = listOf(
         TabItem(
-            title = "Messages",
+            title = "Charts",
             selectedIcon = Icons.Filled.Forum,
             unselectedIcon = Icons.Outlined.Forum,
             badgeCount = unreadChartCount

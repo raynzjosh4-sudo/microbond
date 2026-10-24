@@ -38,6 +38,24 @@ import com.microbond.app.core.ui.theme.MicrobondDividerDark
 import com.microbond.app.core.ui.theme.MicrobondTextPrimary
 
 @Composable
+fun MicrobondChoiceChips(
+    labels: List<String>,
+    selectedChip: String,
+    onChipSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+    ) {
+        labels.forEach { label ->
+            MicrobondChip(label, selectedChip == label) { onChipSelected(label) }
+        }
+    }
+}
+
+@Composable
 fun MicrobondFilterChips(
     selectedChip: String,
     onChipSelected: (String) -> Unit,
@@ -155,5 +173,4 @@ private fun MicrobondChip(
         )
     }
 }
-
 

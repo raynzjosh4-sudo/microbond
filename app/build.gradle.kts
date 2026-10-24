@@ -18,10 +18,20 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Render Staging: 24/7 backend sandbox
+            buildConfigField("String", "BASE_URL", "\"https://microbond-backent.onrender.com/\"")
+            buildConfigField("String", "WS_BASE_URL", "\"wss://microbond-backent.onrender.com/ws/\"")
+            buildConfigField("Boolean", "ENABLE_HTTP_LOGS", "true")
+        }
         release {
             optimization {
                 enable = false
             }
+            // Production Custom Domain / Cloud Run
+            buildConfigField("String", "BASE_URL", "\"https://api.getmicrobond.com/\"")
+            buildConfigField("String", "WS_BASE_URL", "\"wss://api.getmicrobond.com/ws/\"")
+            buildConfigField("Boolean", "ENABLE_HTTP_LOGS", "false")
         }
     }
     compileOptions {
@@ -30,6 +40,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -43,12 +54,24 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("br.com.devsrsouza.compose.icons:tabler-icons:1.1.1")
     implementation(libs.androidx.ui.graphics)
+    implementation(libs.country.code.picker)
+    implementation(libs.lottie.compose)
+
+    // Retrofit & Networking
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

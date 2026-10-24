@@ -113,8 +113,18 @@ fun PreviewPage(
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             when (currentMode) {
-                PreviewMode.STATUS -> StatusPreviewContent(avatars = avatars, onStoryClick = { currentMode = PreviewMode.STATUS }, onImageClick = { currentMode = PreviewMode.IMAGE })
-                PreviewMode.IMAGE -> ImagePreviewContent(avatars = avatars, onStoryClick = { currentMode = PreviewMode.STATUS }, onImageClick = { currentMode = PreviewMode.IMAGE })
+                PreviewMode.STATUS -> StatusPreviewContent(
+                    avatars = avatars,
+                    onBack = onBack,
+                    onStoryClick = { currentMode = PreviewMode.STATUS },
+                    onImageClick = { currentMode = PreviewMode.IMAGE }
+                )
+                PreviewMode.IMAGE -> ImagePreviewContent(
+                    avatars = avatars,
+                    onBack = onBack,
+                    onStoryClick = { currentMode = PreviewMode.STATUS },
+                    onImageClick = { currentMode = PreviewMode.IMAGE }
+                )
             }
         }
     }
@@ -123,6 +133,7 @@ fun PreviewPage(
 @Composable
 private fun StatusPreviewContent(
     avatars: List<ExampleAvatar>,
+    onBack: () -> Unit,
     onStoryClick: () -> Unit,
     onImageClick: () -> Unit,
 ) {
@@ -140,7 +151,7 @@ private fun StatusPreviewContent(
                     .padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onStoryClick) {
+                IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
@@ -327,6 +338,7 @@ private fun ReactionChip(label: String, tint: Color) {
 @Composable
 private fun ImagePreviewContent(
     avatars: List<ExampleAvatar>,
+    onBack: () -> Unit,
     onStoryClick: () -> Unit,
     onImageClick: () -> Unit,
 ) {
@@ -344,7 +356,7 @@ private fun ImagePreviewContent(
                     .padding(horizontal = 14.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onStoryClick) {
+                IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",

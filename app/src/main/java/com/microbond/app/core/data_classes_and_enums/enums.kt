@@ -1,10 +1,25 @@
 package com.microbond.app.core.data_classes_and_enums
 
-import androidx.compose.ui.graphics.Color
+enum class MessagesFabFlow {
+    CREATE_GROUP,
+    INVITE_A_FREIND
+}
 
 enum class GroupSavingsType {
     LONG_TERM,
     SHORT_TERM
+}
+
+enum class SavingsGroupType(val uiLabel: String) {
+    MERRY_GO_ROUND("Rotating Savings"),
+    GOAL_SAVINGS("Goal Savings"),
+    BILL_SPLIT("Bill Split"),
+    WELFARE_FUND("Welfare & Emergency"),
+    EVENT_COMMITTEE("Event Committee"),
+    INVESTMENT_CLUB("Investment Club"),
+    FUNDRAISER("Public Fundraiser"),
+    SHARED_WALLET("Shared Wallet"),
+    ASSOCIATION_DUES("Membership Dues")
 }
 
 enum class MemberSaveStatus {

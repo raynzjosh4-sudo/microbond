@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.Microbond" parent="android:Theme.Material.NoActionBar">
-        <item name="android:windowBackground">@color/microbond_dark_background</item>
+        <item name="android:windowBackground">@drawable/launch_background</item>
         <item name="android:colorAccent">@color/microbond_active_green</item>
         <item name="android:statusBarColor">@color/microbond_dark_background</item>
         <item name="android:navigationBarColor">@color/microbond_dark_background</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
         <item name="android:windowSplashScreenBackground">@color/microbond_dark_background</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_custom</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/microtopicon</item>
         <item name="android:windowSplashScreenIconBackgroundColor">@color/microbond_dark_background</item>
     </style>
 </resources>

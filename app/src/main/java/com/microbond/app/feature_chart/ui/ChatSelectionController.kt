@@ -6,14 +6,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.microbond.app.core.components.menu.MicrobondMenuAction
+import com.microbond.app.core.data_classes_and_enums.MicrobondMenuAction
 import com.microbond.app.core.dummydata.SampleGroup
-import com.microbond.app.core.dummydata.sampleSavingsGroups
+import com.microbond.app.feature_groups.data.UserGroupsRepository
 
 @Stable
-class ChatSelectionController(initialChats: List<SampleGroup>) {
+class ChatSelectionController(initialChats: List<SampleGroup> = emptyList()) {
     var chats by mutableStateOf(initialChats)
-        private set
+         private set
 
     var selectedChatNames by mutableStateOf(emptySet<String>())
         private set
@@ -98,6 +98,11 @@ class ChatSelectionController(initialChats: List<SampleGroup>) {
                                 group.copy(unreadCount = if (allSelectedUnread) 0 else 1)
                             } else group
                         }
+                        if (allSelectedUnread) {
+                            selectedGroups.forEach { grp ->
+                                UserGroupsRepository.markGroupAsRead(grp.name, grp.id)
+                            }
+                        }
                     }
                 )
             )
@@ -164,6 +169,16 @@ class ChatSelectionController(initialChats: List<SampleGroup>) {
         }
     }
 
+    fun updateChats(newChats: List<SampleGroup>) {
+        chats = newChats
+    }
+
+    fun addChat(group: SampleGroup) {
+        if (chats.none { it.name == group.name }) {
+            chats = listOf(group) + chats
+        }
+    }
+
     private fun toggleNames(currentNames: Set<String>): Set<String> =
         if (currentNames.containsAll(selectedChatNames)) {
             currentNames - selectedChatNames
@@ -173,5 +188,7 @@ class ChatSelectionController(initialChats: List<SampleGroup>) {
 }
 
 @Composable
-fun rememberChatSelectionController(): ChatSelectionController =
-    remember { ChatSelectionController(sampleSavingsGroups) }
+fun rememberChatSelectionController(
+    initialChats: List<SampleGroup> = emptyList()
+): ChatSelectionController =
+    remember { ChatSelectionController(initialChats) }

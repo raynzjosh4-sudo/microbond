@@ -1,222 +1,287 @@
 package com.microbond.app.feature_groups.ui
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.provider.ContactsContract
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.microbond.app.core.components.MicrobondTopAppBar
 import com.microbond.app.core.ui.theme.MicrobondActiveGreen
 import com.microbond.app.core.ui.theme.MicrobondDarkBackground
-import com.microbond.app.core.ui.theme.MicrobondDividerDark
 import com.microbond.app.core.ui.theme.MicrobondInactiveGray
 import com.microbond.app.core.ui.theme.MicrobondTextPrimary
-import com.microbond.app.feature_groups.data.TrustConnection
+import com.microbond.app.screens.groupsetttingscreen.settingswidgets.WaSettingsSectionHeader
 
+data class DeviceContact(val name: String, val phoneNumber: String, val isOnApp: Boolean)
+
+val mockGroups = listOf("Weekend Trip Fund", "Family Savings", "Startup Syndicate")
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InviteMemberScreen(
     onBack: () -> Unit,
-    trustedConnections: List<TrustConnection>,
-    onSaveConnection: (TrustConnection) -> Unit
+    isFromYouPage: Boolean = false // Passed from routing
 ) {
     val context = LocalContext.current
-    val clipboardManager = LocalClipboardManager.current
-    var memberName by remember { mutableStateOf("") }
-    var phoneNumber by remember { mutableStateOf("") }
+    var groupPickerContact by remember { mutableStateOf<DeviceContact?>(null) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
-    val canSave = memberName.isNotBlank() && phoneNumber.filter(Char::isDigit).length >= 7
+    val contactsList = remember { mutableStateListOf<DeviceContact>() }
+    
     val referralLink = "https://play.google.com/store/apps/details?id=com.microbond.app"
 
-    val contactPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val contactUri = result.data?.data ?: return@rememberLauncherForActivityResult
-        context.contentResolver.query(
-            contactUri,
-            arrayOf(
-                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-                ContactsContract.CommonDataKinds.Phone.NUMBER
-            ),
-            null,
-            null,
-            null
-        )?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                memberName = cursor.getString(0).orEmpty()
-                phoneNumber = cursor.getString(1).orEmpty()
-                statusMessage = "Contact selected"
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val cursor = context.contentResolver.query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                arrayOf(
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    ContactsContract.CommonDataKinds.Phone.NUMBER
+                ),
+                null,
+                null,
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC"
+            )
+            
+            cursor?.use {
+                val nameIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                val numberIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                
+                while (it.moveToNext()) {
+                    val name = it.getString(nameIndex) ?: ""
+                    val number = it.getString(numberIndex) ?: ""
+                    // Simulate backend check: about 20% of contacts are "on the app"
+                    val isOnApp = number.hashCode() % 5 == 0
+                    if (contactsList.none { c -> c.phoneNumber == number }) {
+                        contactsList.add(DeviceContact(name, number, isOnApp))
+                    }
+                }
             }
+        } else {
+            statusMessage = "Permission required to show contacts."
         }
     }
 
-    fun currentConnection(): TrustConnection = TrustConnection(
-        name = memberName.trim(),
-        phoneNumber = phoneNumber.trim()
-    )
+    LaunchedEffect(Unit) {
+        permissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+    }
 
-    fun openSmsInvite() {
-        val connection = currentConnection()
-        onSaveConnection(connection)
+    BackHandler {
+        if (groupPickerContact != null) {
+            groupPickerContact = null
+        } else {
+            onBack()
+        }
+    }
+
+    fun openSmsInvite(contact: DeviceContact) {
         val message = "Join me on Microbond to save together: $referralLink"
-        val intent = Intent(Intent.ACTION_SENDTO, Uri.fromParts("smsto", connection.phoneNumber, null))
+        val intent = Intent(Intent.ACTION_SENDTO, Uri.fromParts("smsto", contact.phoneNumber, null))
             .putExtra("sms_body", message)
         try {
             context.startActivity(intent)
-            statusMessage = "Invite ready in your messaging app"
         } catch (_: ActivityNotFoundException) {
-            statusMessage = "No messaging app is available on this device"
+            // Handle no SMS app
         }
     }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        containerColor = MicrobondDarkBackground,
         topBar = {
             MicrobondTopAppBar(
-                title = "Invite a member",
+                title = if (isFromYouPage) "Invite a friend" else "Select contact",
                 showBackButton = true,
-                showMoreIcon = false,
+                showMoreIcon = true,
                 onBackClick = onBack
             )
         },
-        bottomBar = {
+        snackbarHost = {
+            if (statusMessage != null) {
+                Snackbar(modifier = Modifier.padding(16.dp)) { Text(statusMessage!!) }
+                LaunchedEffect(statusMessage) {
+                    kotlinx.coroutines.delay(2000)
+                    statusMessage = null
+                }
+            }
         }
     ) { insets ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(insets)
-                .padding(horizontal = 16.dp)
+                .padding(insets),
+            contentPadding = PaddingValues(bottom = 80.dp)
         ) {
-            FormSectionTitle("Add a trust connection")
-            Text(
-                text = "Save a trusted peer now, then invite them to Microbond by SMS.",
-                color = MicrobondInactiveGray,
-                fontSize = 14.sp
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            AppTextField(
-                value = memberName,
-                onValueChange = { memberName = it },
-                label = "Full name"
-            )
-            AppTextField(
-                value = phoneNumber,
-                onValueChange = { phoneNumber = it },
-                label = "Phone number",
-                keyboardType = KeyboardType.Phone
-            )
-
-            OutlinedButton(
-                onClick = {
-                    contactPicker.launch(
-                        Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+            if (isFromYouPage) {
+                item {
+                    WaSettingsSectionHeader("Invite to Microbond")
+                }
+                items(contactsList.filter { !it.isOnApp }) { contact ->
+                    ContactRow(
+                        contact = contact,
+                        actionText = "Invite",
+                        onClick = { openSmsInvite(contact) }
                     )
-                },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                border = BorderStroke(1.dp, MicrobondDividerDark)
-            ) {
-                Text("Choose from device contacts", color = MicrobondTextPrimary)
-            }
+                }
+            } else {
+                item {
+                    WaSettingsSectionHeader("Contacts on Microbond")
+                }
+                items(contactsList.filter { it.isOnApp }) { contact ->
+                    ContactRow(
+                        contact = contact,
+                        actionText = null,
+                        onClick = { groupPickerContact = contact }
+                    )
+                }
 
-            Button(
-                onClick = {
-                    onSaveConnection(currentConnection())
-                    statusMessage = "${memberName.trim()} saved to your trust network"
-                },
-                enabled = canSave,
-                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MicrobondActiveGreen,
-                    contentColor = Color(0xFF07130F)
-                )
-            ) {
-                Text("Save trust connection", fontWeight = FontWeight.SemiBold)
+                item {
+                    WaSettingsSectionHeader("Invite to Microbond")
+                }
+                items(contactsList.filter { !it.isOnApp }) { contact ->
+                    ContactRow(
+                        contact = contact,
+                        actionText = "Invite",
+                        onClick = { openSmsInvite(contact) }
+                    )
+                }
             }
-
-            OutlinedButton(
-                onClick = ::openSmsInvite,
-                enabled = canSave,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                border = BorderStroke(1.dp, MicrobondDividerDark)
-            ) {
-                Text("Save and invite by SMS", color = MicrobondTextPrimary)
-            }
-
-            FormSectionTitle("Invite link")
-            Text(
-                text = "Share the app link so friends can join your trust network.",
-                color = MicrobondInactiveGray,
-                fontSize = 14.sp
-            )
-            OutlinedButton(
-                onClick = {
-                    clipboardManager.setText(AnnotatedString(referralLink))
-                    statusMessage = "Invite link copied"
-                },
-                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-                border = BorderStroke(1.dp, MicrobondDividerDark)
-            ) {
-                Text("Copy Microbond invite link", color = MicrobondTextPrimary)
-            }
-
-            statusMessage?.let { message ->
-                Text(
-                    text = message,
-                    color = MicrobondActiveGreen,
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(top = 12.dp)
-                )
-            }
-
-            if (trustedConnections.isNotEmpty()) {
-                FormSectionTitle("Your trust network")
-                trustedConnections.forEach { connection ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+            
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, "Join me on Microbond: $referralLink")
+                            }
+                            context.startActivity(Intent.createChooser(intent, "Share invite link"))
+                        }
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MicrobondActiveGreen,
+                        modifier = Modifier.size(40.dp)
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(connection.name, color = MicrobondTextPrimary, fontSize = 15.sp)
-                            Text(connection.phoneNumber, color = MicrobondInactiveGray, fontSize = 13.sp)
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text("Share invite link", color = MicrobondTextPrimary, fontSize = 16.sp)
+                }
+            }
+        }
+
+        if (groupPickerContact != null) {
+            ModalBottomSheet(
+                onDismissRequest = { groupPickerContact = null },
+                containerColor = MicrobondDarkBackground
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "Invite ${groupPickerContact!!.name} to...",
+                        color = MicrobondTextPrimary,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    mockGroups.forEach { groupName ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    statusMessage = "Invitation sent to $groupName (Awaiting admin approval)"
+                                    groupPickerContact = null
+                                }
+                                .padding(vertical = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = MicrobondInactiveGray.copy(alpha = 0.2f),
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = null,
+                                    tint = MicrobondInactiveGray,
+                                    modifier = Modifier.padding(8.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(groupName, color = MicrobondTextPrimary, fontSize = 16.sp)
                         }
                     }
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun ContactRow(contact: DeviceContact, actionText: String?, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = MicrobondInactiveGray.copy(alpha = 0.3f),
+            modifier = Modifier.size(40.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.padding(8.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(contact.name, color = MicrobondTextPrimary, fontSize = 16.sp)
+            Text(contact.phoneNumber, color = MicrobondInactiveGray, fontSize = 13.sp)
+        }
+        if (actionText != null) {
+            TextButton(onClick = onClick) {
+                Text(actionText, color = MicrobondActiveGreen, fontWeight = FontWeight.SemiBold)
             }
         }
     }
