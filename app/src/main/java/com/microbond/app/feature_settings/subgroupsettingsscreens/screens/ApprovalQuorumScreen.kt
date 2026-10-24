@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.HowToVote
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -174,6 +175,22 @@ fun ApprovalQuorumScreen(
 
             Text(
                 text = exampleText,
+                color = MicrobondInactiveGray,
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+                modifier = Modifier.padding(start = 72.dp, end = 20.dp, bottom = 24.dp)
+            )
+
+            WaSettingsSectionHeader("Disbursement auto-approval")
+
+            WaSettingsValueRow(
+                icon = Icons.Default.VerifiedUser,
+                title = "Maximum auto-approve ceiling",
+                value = quorumData?.autoApproveCeilingFormatted ?: "500,000 UGX"
+            )
+
+            Text(
+                text = "Signers can auto-approve routine disbursements up to their chosen threshold, strictly capped at 500,000 UGX. Any larger transfer mandates manual multi-signature authorization.",
                 color = MicrobondInactiveGray,
                 fontSize = 13.sp,
                 lineHeight = 18.sp,

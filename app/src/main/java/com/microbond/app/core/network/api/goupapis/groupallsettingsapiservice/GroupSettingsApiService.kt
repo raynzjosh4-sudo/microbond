@@ -192,7 +192,12 @@ data class QuorumSettingsData(
     @SerializedName("enable_quorum_decay") val enableQuorumDecay: Boolean = true,
     @SerializedName("quorum_decay_hours") val quorumDecayHours: Int = 48,
     @SerializedName("quorum_decay_minimum_approvals") val quorumDecayMinimumApprovals: Int = 2,
-    @SerializedName("allowed_options") val allowedOptions: List<Int> = listOf(50, 60, 66, 75, 80, 100)
+    @SerializedName("allowed_options") val allowedOptions: List<Int> = listOf(50, 60, 66, 75, 80, 100),
+    @SerializedName("auto_approve_small_requests") val autoApproveSmallRequests: Boolean = false,
+    @SerializedName("auto_approve_max_amount") val autoApproveMaxAmount: Double = 0.0,
+    @SerializedName("auto_approve_max_amount_formatted") val autoApproveMaxAmountFormatted: String = "0 UGX",
+    @SerializedName("auto_approve_ceiling") val autoApproveCeiling: Long = 500000L,
+    @SerializedName("auto_approve_ceiling_formatted") val autoApproveCeilingFormatted: String = "500,000 UGX"
 )
 
 data class QuorumSettingsResponse(
@@ -204,7 +209,41 @@ data class QuorumSettingsResponse(
 data class UpdateQuorumSettingsRequest(
     @SerializedName("quorum_percentage") val quorumPercentage: Int? = null,
     @SerializedName("approval_strategy") val approvalStrategy: String? = null,
-    @SerializedName("enable_quorum_decay") val enableQuorumDecay: Boolean? = null
+    @SerializedName("enable_quorum_decay") val enableQuorumDecay: Boolean? = null,
+    @SerializedName("auto_approve_small_requests") val autoApproveSmallRequests: Boolean? = null,
+    @SerializedName("auto_approve_max_amount") val autoApproveMaxAmount: Double? = null
+)
+
+// ── My Authorization & Auto-Approve Settings Models ───────────────────────
+
+data class MyAuthorizationData(
+    @SerializedName("group_id") val groupId: String = "",
+    @SerializedName("group_name") val groupName: String = "",
+    @SerializedName("user_id") val userId: String = "",
+    @SerializedName("user_name") val userName: String = "",
+    @SerializedName("role") val role: String = "MEMBER",
+    @SerializedName("is_admin") val isAdmin: Boolean = false,
+    @SerializedName("is_signer") val isSigner: Boolean = false,
+    @SerializedName("is_authorized") val isAuthorized: Boolean = false,
+    @SerializedName("authorization_status") val authorizationStatus: String = "Authorized",
+    @SerializedName("auto_approve_small_requests") val autoApproveSmallRequests: Boolean = false,
+    @SerializedName("auto_approve_max_amount") val autoApproveMaxAmount: Double = 50000.0,
+    @SerializedName("auto_approve_max_amount_formatted") val autoApproveMaxAmountFormatted: String = "50,000 UGX",
+    @SerializedName("max_allowed_limit") val maxAllowedLimit: Long = 500000L,
+    @SerializedName("max_allowed_limit_formatted") val maxAllowedLimitFormatted: String = "500,000 UGX",
+    @SerializedName("currency") val currency: String = "UGX",
+    @SerializedName("description") val description: String? = null
+)
+
+data class MyAuthorizationResponse(
+    val status: String = "success",
+    val message: String? = null,
+    val data: MyAuthorizationData? = null
+)
+
+data class UpdateMyAuthorizationRequest(
+    @SerializedName("auto_approve_small_requests") val autoApproveSmallRequests: Boolean? = null,
+    @SerializedName("auto_approve_max_amount") val autoApproveMaxAmount: Double? = null
 )
 
 // ── Pending Disbursals Queue & Circuit Breaker Models ──────────────────────
@@ -382,4 +421,16 @@ interface GroupSettingsApiService {
         @Path("group_id") groupId: String,
         @Body payload: UpdatePendingDisbursalsRequest
     ): Response<PendingDisbursalsResponse>
+
+    // ── Dedicated My Authorization & Auto-Approve Settings ────────────────────
+    @GET("api/v1/groups/{group_id}/settings/my-authorization")
+    suspend fun getMyAuthorization(
+        @Path("group_id") groupId: String
+    ): Response<MyAuthorizationResponse>
+
+    @PATCH("api/v1/groups/{group_id}/settings/my-authorization")
+    suspend fun updateMyAuthorization(
+        @Path("group_id") groupId: String,
+        @Body payload: UpdateMyAuthorizationRequest
+    ): Response<MyAuthorizationResponse>
 }
