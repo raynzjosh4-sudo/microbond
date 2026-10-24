@@ -169,6 +169,12 @@ interface GroupGovernanceApiService {
         @Body payload: UpdateMultisigRosterRequest
     ): Response<MultisigRosterResponse>
 
+    @POST("api/v1/groups/{group_id}/settings/multisig-roster/signers/{user_id}")
+    suspend fun addSigner(
+        @Path("group_id") groupId: String,
+        @Path("user_id") userId: String
+    ): Response<MultisigRosterResponse>
+
     @POST("api/v1/groups/{group_id}/settings/multisig-roster/signers")
     suspend fun addSigners(
         @Path("group_id") groupId: String,
